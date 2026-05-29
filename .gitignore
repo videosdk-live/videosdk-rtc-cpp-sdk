@@ -1,0 +1,16 @@
+# Build output
+build/
+dist/
+cmake-build-*/
+*.o
+*.a
+
+# Prebuilt binaries are distributed via GitHub Releases, never committed.
+*.so
+*.so.*
+lib/*.so
+
+# Editor / OS
+.DS_Store
+.vscode/
+.idea/
