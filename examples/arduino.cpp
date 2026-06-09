@@ -1,6 +1,8 @@
-// Interactive audio/video console for Raspberry Pi and other Linux devices.
-// Toggle each media path at runtime with single keypresses.
-// Usage: raspberry_pi [meeting_id] [token] [pulse_source] [v4l2_device]
+// Interactive audio/video console for Arduino UNO Q (ABX00162).
+// The UNO Q runs Debian Linux on its Qualcomm QRB2210 MPU, so the
+// user-space APIs (V4L2, PulseAudio, termios) are identical to
+// Raspberry Pi. Defaults are tuned for the Cortex-A53 @ 2 GHz.
+// Usage: arduino [meeting_id] [token] [pulse_source] [v4l2_device]
 
 #include <videosdk/videosdk.hpp>
 
@@ -17,8 +19,8 @@
 namespace {
 
 constexpr const char *kV4l2Device = "/dev/video0";
-constexpr int kCamWidth = 1280;
-constexpr int kCamHeight = 720;
+constexpr int kCamWidth = 640;
+constexpr int kCamHeight = 480;
 constexpr int kCamFps = 30;
 
 std::atomic<bool> g_running{true};
@@ -82,7 +84,7 @@ int main(int argc, char **argv) {
   videosdk::MeetingConfig config;
   config.meetingId = meeting_id;
   config.token = token;
-  config.name = "Raspberry Pi";
+  config.name = "Arduino UNO Q";
   videosdk::Meeting meeting(config);
 
   meeting.onParticipantJoined([](const std::string &id, const std::string &name) {

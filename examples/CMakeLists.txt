@@ -8,3 +8,6 @@ find_package(videosdk REQUIRED)
 
 add_executable(raspberry_pi raspberry_pi.cpp)
 target_link_libraries(raspberry_pi PRIVATE videosdk::cpp)
+
+add_executable(arduino arduino.cpp)
+target_link_libraries(arduino PRIVATE videosdk::cpp)

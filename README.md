@@ -64,6 +64,9 @@ meeting.onParticipantLeft([](const std::string& id) {
 
 meeting.onError([](videosdk::ErrorCode code, const std::string& message) {
 });
+
+meeting.onData([](const uint8_t* data, size_t len, bool is_binary) {
+});
 ```
 
 ### Join
@@ -77,6 +80,26 @@ meeting.enableCamera();
 meeting.enableVideoDisplay();
 ```
 
+### Send data
+
+```cpp
+std::string msg = "hello";
+meeting.sendData(msg.data(), msg.size(), /*binary=*/false);   // text
+meeting.sendData(blob, sizeof(blob), /*binary=*/true);        // binary
+```
+
+### Simulcast
+
+Configure up to three VP8 layers before `join()` (smallest → largest):
+
+```cpp
+meeting.setSimulcastLayers({
+    {.width = 320,  .height = 180, .maxBitrateKbps = 300,  .maxFps = 15},
+    {.width = 640,  .height = 360, .maxBitrateKbps = 1500, .maxFps = 20},
+    {.width = 1280, .height = 720, .maxBitrateKbps = 3000, .maxFps = 30},
+});
+```
+
 ## Listeners
 
 ### Meeting events
@@ -84,6 +107,7 @@ meeting.enableVideoDisplay();
 1. `onError` — an unrecoverable error occurred.
 2. `onParticipantJoined` — a remote participant joined.
 3. `onParticipantLeft` — a remote participant left.
+4. `onData` — a data-channel message was received.
 
 ## Build
 
@@ -92,15 +116,18 @@ find_package(videosdk REQUIRED)
 target_link_libraries(my_app PRIVATE videosdk::cpp)
 ```
 
-## Example
+## Examples
 
-[examples/raspberry_pi.cpp](examples/raspberry_pi.cpp) is an interactive console that toggles each media path at runtime: `m` mic, `c` camera, `s` speaker, `d` display, `i` stats, `q` quit.
+Interactive consoles that toggle each media path at runtime: `m` mic, `c` camera, `s` speaker, `d` display, `i` stats, `t` send text, `b` send binary, `q` quit.
+
+- [examples/raspberry_pi.cpp](examples/raspberry_pi.cpp) — Raspberry Pi / generic Linux
+- [examples/arduino.cpp](examples/arduino.cpp) — Arduino UNO Q (Debian on the QRB2210)
 
 ```bash
 cd examples && mkdir build && cd build
 cmake .. && make
 export VIDEOSDK_TOKEN="..." VIDEOSDK_MEETING_ID="..."
-./raspberry_pi
+./raspberry_pi      # or ./arduino
 ```
 
 ## Documentation
