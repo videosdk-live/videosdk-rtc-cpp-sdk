@@ -122,12 +122,13 @@ Interactive consoles that toggle each media path at runtime: `m` mic, `c` camera
 
 - [examples/raspberry_pi.cpp](examples/raspberry_pi.cpp) — Raspberry Pi / generic Linux
 - [examples/arduino.cpp](examples/arduino.cpp) — Arduino UNO Q (Debian on the QRB2210)
+- [examples/jetson.cpp](examples/jetson.cpp) — NVIDIA Jetson Orin Nano
 
 ```bash
 cd examples && mkdir build && cd build
 cmake .. && make
 export VIDEOSDK_TOKEN="..." VIDEOSDK_MEETING_ID="..."
-./raspberry_pi      # or ./arduino
+./raspberry_pi      # or ./arduino, ./jetson
 ```
 
 ## Documentation
