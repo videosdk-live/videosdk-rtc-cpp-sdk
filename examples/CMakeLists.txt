@@ -11,3 +11,6 @@ target_link_libraries(raspberry_pi PRIVATE videosdk::cpp)
 
 add_executable(arduino arduino.cpp)
 target_link_libraries(arduino PRIVATE videosdk::cpp)
+
+add_executable(jetson jetson.cpp)
+target_link_libraries(jetson PRIVATE videosdk::cpp)
