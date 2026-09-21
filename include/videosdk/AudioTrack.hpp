@@ -28,7 +28,7 @@ public:
     /// so there is a single, typed publish surface.
     AudioTrack(Meeting& meeting, std::string source_name);
 
-    /// Legacy constructor for direct C ABI use inside the SDK. Prefer the
+    /// Legacy constructor. Prefer the
     /// Meeting& overload above.
     AudioTrack(VsdkMeeting* meeting, std::string source_name);
 
@@ -54,7 +54,7 @@ private:
     void captureLoop();
 
     Meeting* meeting_wrapper_{nullptr};   // preferred path (public API)
-    VsdkMeeting* meeting_ffi_{nullptr};   // legacy direct C ABI fallback
+    VsdkMeeting* meeting_ffi_{nullptr};   // legacy fallback
     std::string source_name_;
     std::thread thread_;
     std::atomic<bool> running_{false};

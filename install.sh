@@ -3,20 +3,15 @@
 #   curl -fsSL https://raw.githubusercontent.com/videosdk-live/videosdk-rtc-cpp-sdk/main/install.sh | sudo sh
 # Windows: download the .zip from the Releases page instead (see README.md).
 # Env: VIDEOSDK_VERSION (default latest), PREFIX (default /usr/local), SKIP_DEPS=1
-#
-# Maintained in the SDK monorepo (platforms/cpp/public/) and synced here; it
-# must agree with the asset names package-release.sh produces.
 set -eu
 
 REPO="videosdk-live/videosdk-rtc-cpp-sdk"
 PREFIX="${PREFIX:-/usr/local}"
 VERSION="${VIDEOSDK_VERSION:-latest}"
-# Local testing: set VIDEOSDK_TARBALL to a locally-built .tar.gz to install it
-# directly instead of downloading a published release. Everything else (deps,
-# extract, ldconfig) runs identically.
+# VIDEOSDK_TARBALL installs a .tar.gz you already have instead of downloading a
+# release. Everything else — dependencies, extract, ldconfig — runs the same.
 #   sudo VIDEOSDK_TARBALL=./videosdk-cpp-v0.0.1-beta.6-linux-arm64.tar.gz sh install.sh
 TARBALL="${VIDEOSDK_TARBALL:-}"
-
 case "$(uname -s)" in
   Linux)  OS="linux" ;;
   Darwin) OS="macos" ;;
@@ -71,7 +66,6 @@ TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
 if [ -n "$TARBALL" ]; then
-  # Local testing path: install the provided tarball directly.
   [ -f "$TARBALL" ] || { echo "VIDEOSDK_TARBALL not found: $TARBALL" >&2; exit 1; }
   ASSET="$(basename "$TARBALL")"
   cp "$TARBALL" "$TMP/$ASSET"

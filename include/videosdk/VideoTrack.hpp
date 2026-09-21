@@ -31,7 +31,7 @@ namespace videosdk
                    int height = kDefaultHeight,
                    int fps = kDefaultFps);
 
-        /// Legacy direct C ABI constructor. Prefer the Meeting& overload above.
+        /// Legacy constructor. Prefer the Meeting& overload above.
         VideoTrack(VsdkMeeting *meeting,
                    std::string device_path,
                    int width = kDefaultWidth,

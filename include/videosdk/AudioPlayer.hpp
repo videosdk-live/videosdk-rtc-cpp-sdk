@@ -45,7 +45,7 @@ public:
     /// Stop playback and release the device. Idempotent.
     void stop();
 
-    /// Make this the bridge's target (legacy standalone path).
+    /// Make this the active player (legacy standalone path).
     void bindAsActive();
 
     uint64_t framesPlayed() const { return frames_played_.load(); }

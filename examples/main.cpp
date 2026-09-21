@@ -133,7 +133,7 @@ void restore_terminal() {}
 void raw_terminal() {}
 
 // Runs on a console control thread, so only flag it; the loop polls every 50 ms.
-// ponytail: CTRL_CLOSE_EVENT ends the process soon after this returns, so
+// Note: CTRL_CLOSE_EVENT ends the process soon after this returns, so
 // closing the window may skip leave(). Ctrl+C is clean.
 BOOL WINAPI console_ctrl_handler(DWORD type) {
   switch (type) {
