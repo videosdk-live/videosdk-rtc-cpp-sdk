@@ -1,135 +1,160 @@
 # VideoSDK RTC C++ SDK
 
-Official C++ SDK of [videosdk.live](https://www.videosdk.live/)
+Official C++ SDK of [videosdk.live](https://www.videosdk.live/).
 
-## Features
+Add real-time audio and video to native C++17 apps on **Linux, macOS and Windows**,
+including boards such as Raspberry Pi, NVIDIA Jetson and Arduino UNO Q. The SDK joins a
+meeting, captures your camera and microphone, plays remote audio and shows remote video
+in a window. It also offers a data channel, end-to-end encryption, cloud recording, HLS
+and RTMP livestreaming.
 
-- Add real-time audio and video to native C++ apps on Linux and embedded devices such as Raspberry Pi and NVIDIA Jetson.
-- Built on WebRTC. Captures from V4L2 cameras and PulseAudio, renders with SDL2.
-- Ships as a prebuilt shared library, so there is no toolchain or source build to set up.
+| Platform | Camera | Microphone and speaker | Video window |
+|---|---|---|---|
+| Linux x86_64 and arm64 | V4L2 | PulseAudio or PipeWire | SDL2 |
+| macOS, Apple Silicon and Intel | AVFoundation | CoreAudio | SDL2 |
+| Windows x64 | Media Foundation | WASAPI | SDL2 |
+
+The SDK ships prebuilt, so a C++ compiler and CMake are all you need.
 
 ## Requirements
 
-- Linux on `arm64`, `armv7`, or `x86_64`
-- CMake 3.16+
-- A C++17 compiler
+| Platform | Runs on | To build your app |
+|---|---|---|
+| Linux | glibc 2.35 or newer: Ubuntu 22.04+, Debian 12+, Raspberry Pi OS Bookworm, NVIDIA JetPack 6, Arduino UNO Q | CMake 3.16+, a C++17 compiler |
+| macOS | macOS 11 or newer | CMake 3.16+, Xcode Command Line Tools |
+| Windows | Windows 10 or 11, x64 | CMake 3.16+, Visual Studio 2022 (or its Build Tools) |
+
+Check a Linux system's glibc with `ldd --version`.
 
 ## Installation
+
+### Linux and macOS
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/videosdk-live/videosdk-rtc-cpp-sdk/main/install.sh | sudo sh
 ```
 
-This installs the headers and `libvideosdk.so` into `/usr/local`. Then install the system libraries it depends on:
+This installs the headers and the library into `/usr/local`.
+
+- **Linux:** on Debian, Ubuntu and their derivatives, the script also installs the system
+  libraries the SDK needs. On other distributions, install these yourself: PulseAudio
+  client (`libpulse`), SDL2, GLib and libXtst.
+- **macOS:** nothing else is needed. SDL2 is included in the package.
+
+Options, set as environment variables:
+
+| Variable | Meaning |
+|---|---|
+| `VIDEOSDK_VERSION` | Install this release, such as `v0.0.1-beta.6`. Default: the latest |
+| `PREFIX` | Install here instead of `/usr/local` |
+| `SKIP_DEPS=1` | Don't install system libraries |
+
+On an **Intel Mac with Homebrew SDL2**, the script stops rather than replace Homebrew's
+SDL2 in `/usr/local/lib`. Install somewhere else instead:
 
 ```bash
-sudo apt-get install -y libpulse0 libsdl2-2.0-0 libjpeg-turbo8
+curl -fsSL https://raw.githubusercontent.com/videosdk-live/videosdk-rtc-cpp-sdk/main/install.sh | sudo PREFIX=/opt/videosdk sh
 ```
 
-## Usage
+Then pass `-DCMAKE_PREFIX_PATH=/opt/videosdk` when you configure your app.
 
-Generate a token from the [dashboard](https://app.videosdk.live/) and create a room with the [Create Room API](https://docs.videosdk.live/api-reference/realtime-communication/create-room).
+### Windows
 
-### Import
+1. Download `videosdk-cpp-<version>-windows-x64.zip` from
+   [Releases](https://github.com/videosdk-live/videosdk-rtc-cpp-sdk/releases).
+2. Extract it, for example to `C:\videosdk`.
 
-```cpp
-#include <videosdk/videosdk.hpp>
+The zip holds a static library, so it is a few hundred MB. Your own program stays small,
+because the linker only takes what it uses. Nothing else needs installing on the machines
+that run your program.
+
+## Build the example
+
+[`examples/main.cpp`](examples/main.cpp) joins a meeting, turns on the mic, camera,
+speaker and video window, and lets you toggle each from the keyboard. You need a meeting
+ID and a token: generate a token from the [dashboard](https://app.videosdk.live/) and
+create a meeting with the
+[Create Room API](https://docs.videosdk.live/api-reference/realtime-communication/create-room).
+
+**Linux and macOS:**
+
+```bash
+cd examples
+mkdir build && cd build
+cmake ..
+cmake --build .
+./main <meeting-id> <token>
 ```
 
-### Initialize Meeting
+**Windows**, in PowerShell:
 
-```cpp
-videosdk::Meeting meeting("MEETING_ID", "TOKEN");
+```powershell
+cd examples
+mkdir build; cd build
+cmake .. -DCMAKE_PREFIX_PATH=C:\videosdk
+cmake --build . --config Release
+.\Release\main.exe <meeting-id> <token>
 ```
 
-To set a display name, use `MeetingConfig`:
+On macOS, the first run asks whether Terminal may use the camera and microphone. Allow
+both.
 
-```cpp
-videosdk::MeetingConfig config;
-config.meetingId = "MEETING_ID";
-config.token = "TOKEN";
-config.name = "Raspberry Pi";
+| Key | Action |
+|---|---|
+| `m` | Microphone on / off |
+| `c` | Camera on / off |
+| `s` | Speaker on / off |
+| `d` | Video window open / closed |
+| `i` | Print statistics |
+| `e` | Advance the encryption key one step (only when E2EE is on) |
+| `h` | List the keys |
+| `q` | Leave the meeting and quit |
 
-videosdk::Meeting meeting(config);
-```
+The example also reads `VIDEOSDK_MEETING_ID` and `VIDEOSDK_TOKEN` from the environment.
+To choose devices, run `main <meeting-id> <token> <microphone> <camera>`:
 
-### Add Listeners
+| | Camera | Microphone |
+|---|---|---|
+| Linux | A device path such as `/dev/video2`. Default: the first working camera | A PulseAudio source name (`pactl list short sources`). Default: `default` |
+| Windows | A camera number (`0`, `1`) or part of its name. Default: the first camera | Part of the microphone's name. Default: the system default |
+| macOS | Always the system default | Always the system default |
 
-```cpp
-meeting.onParticipantJoined([](const std::string& id, const std::string& name) {
-});
-
-meeting.onParticipantLeft([](const std::string& id) {
-});
-
-meeting.onError([](videosdk::ErrorCode code, const std::string& message) {
-});
-
-meeting.onData([](const uint8_t* data, size_t len, bool is_binary) {
-});
-```
-
-### Join
-
-```cpp
-meeting.join();
-
-meeting.enableSpeaker();
-meeting.enableMic();
-meeting.enableCamera();
-meeting.enableVideoDisplay();
-```
-
-### Send data
-
-```cpp
-std::string msg = "hello";
-meeting.sendData(msg.data(), msg.size(), /*binary=*/false);   // text
-meeting.sendData(blob, sizeof(blob), /*binary=*/true);        // binary
-```
-
-### Simulcast
-
-Configure up to three VP8 layers before `join()` (smallest → largest):
-
-```cpp
-meeting.setSimulcastLayers({
-    {.width = 320,  .height = 180, .maxBitrateKbps = 300,  .maxFps = 15},
-    {.width = 640,  .height = 360, .maxBitrateKbps = 1500, .maxFps = 20},
-    {.width = 1280, .height = 720, .maxBitrateKbps = 3000, .maxFps = 30},
-});
-```
-
-## Listeners
-
-### Meeting events
-
-1. `onError` — an unrecoverable error occurred.
-2. `onParticipantJoined` — a remote participant joined.
-3. `onParticipantLeft` — a remote participant left.
-4. `onData` — a data-channel message was received.
-
-## Build
+## Add the SDK to your project
 
 ```cmake
+cmake_minimum_required(VERSION 3.16)
+project(my_app LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+
+# Windows: the SDK uses the static C runtime, so your app must too.
+# Must come before find_package.
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
+
 find_package(videosdk REQUIRED)
+
+add_executable(my_app main.cpp)
 target_link_libraries(my_app PRIVATE videosdk::cpp)
 ```
 
-## Examples
+- **Windows:** build the **Release** configuration (`--config Release`). Debug builds don't
+  link.
+- **NVIDIA Jetson:** also copy the Tegra `link_directories` block from
+  [`examples/CMakeLists.txt`](examples/CMakeLists.txt).
 
-Interactive consoles that toggle each media path at runtime: `m` mic, `c` camera, `s` speaker, `d` display, `i` stats, `t` send text, `b` send binary, `q` quit.
+## Using the SDK
 
-- [examples/raspberry_pi.cpp](examples/raspberry_pi.cpp) — Raspberry Pi / generic Linux
-- [examples/arduino.cpp](examples/arduino.cpp) — Arduino UNO Q (Debian on the QRB2210)
-- [examples/jetson.cpp](examples/jetson.cpp) — NVIDIA Jetson Orin Nano
+[`examples/README.md`](examples/README.md) is the API reference: a worked program, then a
+section for each feature — events, devices, video quality, the data channel, end-to-end
+encryption, cloud recording, HLS, RTMP livestreaming, raw frames, statistics and tracing.
 
-```bash
-cd examples && mkdir build && cd build
-cmake .. && make
-export VIDEOSDK_TOKEN="..." VIDEOSDK_MEETING_ID="..."
-./raspberry_pi      # or ./arduino, ./jetson
-```
+## Known limitations
+
+- **Built for one-to-one calls.** The built-in speaker and video window take every remote
+  stream.
+- **No echo cancellation.** Use headphones.
+- **Windows:** closing the console window skips `leave()`, and a device unplugged during a
+  call isn't picked up again.
 
 ## Documentation
 
